@@ -19,7 +19,7 @@ def wire_triangle(t0, t1, t2, image, color):
 # -----------------------------------------------------
 
 
-def _fill_half(t0, t1, t2, draw, color):
+def _fill_half(t0, t1, t2, image, color):
 	"""
 	# XXX: border check:
 		1) t1.y == t0.y, that is, horizontal line
@@ -40,7 +40,7 @@ def _fill_half(t0, t1, t2, draw, color):
 		if Ax > Bx:
 			Ax, Bx = Bx, Ax
 		for x in range(Ax, Bx + 1):
-			draw.point((x, y), color)
+			image.set((x, y), color)
 
 
 def old_triangle(t0, t1, t2, image, color):
@@ -54,15 +54,13 @@ def old_triangle(t0, t1, t2, image, color):
 	if t0.y > t1.y:
 		t0, t1 = t1, t0
 
-	draw = ImageDraw.Draw(image)
-
 	# draw first (bottom) half of the triangle: calculate x of both left side
 	# and right side
-	_fill_half(t0, t1, t2, draw, color)
+	_fill_half(t0, t1, t2, image, color)
 
 	# draw second (upper) half of the triangle: calculate x of both left side
 	# and right side
-	_fill_half(t2, t1, t0, draw, color)
+	_fill_half(t2, t1, t0, image, color)
 
 
 # -----------------------------------------------------
@@ -155,13 +153,11 @@ def triangle(*arg):
 	if isinstance(t0, (Vec3i, Vec3f)):
 		return zbuffer_triangle(t0, t1, t2, image, color)
 
-	draw = ImageDraw.Draw(image)
-
 	points = t0, t1, t2
 	bbox = find_bounding_box(points)
 	for pt in iter_pixel_of_box(bbox):
 		if inside(points, pt):
-			draw.point(pt, color)
+			image.set(pt, color)
 
 
 class _ZBuffer(list):
@@ -193,7 +189,6 @@ g_zbuffer = _ZBuffer()
 
 def zbuffer_triangle(t0, t1, t2, image, color):
 	global g_zbuffer
-	draw = ImageDraw.Draw(image)
 
 	points = t0, t1, t2
 	bbox = find_bounding_box(points)
@@ -213,7 +208,7 @@ def zbuffer_triangle(t0, t1, t2, image, color):
 				color = tuple([int(round(
 					c1[i] * bc[0] + c2[i] * bc[1] + c3[i] * bc[2])) for i in range(3)] + [255])
 				# color = tuple(map(int, map(round, color[0])))
-			draw.point(pt, color)
+			image.set(pt, color)
 
 import numpy as np
 g_camera = Vec3f(0, 0, 1)
@@ -245,7 +240,6 @@ def perspective(v):
 def texture_triangle(points, image, uv_coords, model, intensity):
 	global g_zbuffer
 
-	draw = ImageDraw.Draw(image)
 	bbox = find_bounding_box(points)
 	cnt = len(points)
 	for pt in iter_pixel_of_box(bbox):
@@ -264,11 +258,11 @@ def texture_triangle(points, image, uv_coords, model, intensity):
 
 			color = model.diffuse(uv)
 			color = get_color(intensity, color)
-			draw.point(pt, color)
+			image.set(pt, color)
 
 
 def main():
-	image = Image.new('RGBA', (200, 200), black)
+	image = MyImage((200, 200), 'RGBA')
 
 	t0 = [Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)]
 	t1 = [Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)]
@@ -277,8 +271,8 @@ def main():
 	triangle(t1[0], t1[1], t1[2], image, white)
 	triangle(t2[0], t2[1], t2[2], image, green)
 
-	output = image.transpose(Image.FLIP_TOP_BOTTOM)
-	output.save('./output/triangle.png')
+	image.flip_vertically()
+	image.save('./output/triangle.png')
 
 
 if __name__ == '__main__':

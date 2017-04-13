@@ -5,7 +5,7 @@ import numpy as np
 
 import logging
 
-__all__ = ['log', 'Vec2i', 'Vec2f', 'Vec3i', 'Vec3f', 'get_color']
+__all__ = ['log', 'Vec2i', 'Vec2f', 'Vec3i', 'Vec3f', 'get_color', 'MyImage']
 
 
 def init_logger(name):
@@ -29,6 +29,38 @@ log.info('pwd: {}'.format(os.getcwd()))
 # ===============================================
 #  types
 # -----------------------------------------------
+
+
+class MyImage(object):
+
+	def __init__(self, size, mode, color=0):
+		if isinstance(size, tuple):
+			if mode == 'RGBA':
+				color = (0, 0, 0, 255)
+			self.image = Image.new(mode, size, color)
+		else:
+			fp = size
+			self.image = Image.open(fp, mode='r')
+		self._init_attr()
+
+	def _init_attr(self):
+		self.draw = ImageDraw.Draw(self.image)
+		self.width = self.image.width
+		self.height = self.image.height
+	
+	def set(self, pt, color):
+		self.draw.point(pt, color)
+	
+	def flip_vertically(self):
+		self.image = self.image.transpose(Image.FLIP_TOP_BOTTOM)
+	
+	def save(self, filename):
+		self.image.save(filename)
+		
+	def __getattr__(self, name):
+		if not hasattr(self, name):
+			return getattr(self.image, name)
+		return super(MyImage, self).__getattribute__(self, name)
 
 
 class _Vec(object):

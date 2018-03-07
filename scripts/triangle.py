@@ -250,15 +250,20 @@ def texture_triangle(points, image, uv_coords, model, intensity):
 		
 		z = sum(points[i].z * bc[i] for i in range(cnt))
 
+		if bc.x != 0 and bc.y != 0 and bc.z != 0:
+			continue
+
+		image.set(pt, green)
+
 		if g_zbuffer[pt.x, pt.y] < z:
 			g_zbuffer[pt.x, pt.y] = z
 			
-			uv = sum((uv_coords[i] * bc[i] for i in range(cnt)), Vec2f(0, 0))
-			# assert uv[0] <= 1 and uv[1] <=1, 'uv={}, bc={}'.format(uv, bc)
+			# uv = sum((uv_coords[i] * bc[i] for i in range(cnt)), Vec2f(0, 0))
+			# # assert uv[0] <= 1 and uv[1] <=1, 'uv={}, bc={}'.format(uv, bc)
 
-			color = model.diffuse(uv)
-			color = get_color(intensity, color)
-			image.set(pt, color)
+			# color = model.diffuse(uv)
+			# color = get_color(intensity, color)
+			# image.set(pt, color)
 
 
 def main():

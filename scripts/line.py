@@ -1,14 +1,14 @@
 from common import log, MyImage
 
 
-__all__ = ['line', 'black', 'white', 'red', 'green']
+__all__ = ['line', 'black', 'white', 'red', 'green', 'blue']
 
 
 black = (0, 0, 0, 255)
 white = (255, 255, 255, 255)
 red = (255, 0, 0, 255)
 green = (0, 255, 0, 255)
-blue = (0, 0, 255, 0)
+blue = (0, 0, 255, 255)
 
 
 def _line(x0, y0, x1, y1, image, color):

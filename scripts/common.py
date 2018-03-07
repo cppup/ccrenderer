@@ -21,7 +21,8 @@ def init_logger(name):
 	return logger
 
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))  # change path/to/script/base/dir
+# change path/to/script/base/dir
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 log = init_logger(__name__)
 log.info('pwd: {}'.format(os.getcwd()))
 
@@ -47,20 +48,27 @@ class MyImage(object):
 		self.draw = ImageDraw.Draw(self.image)
 		self.width = self.image.width
 		self.height = self.image.height
-	
+
 	def set(self, pt, color):
 		self.draw.point(pt, color)
-	
+
+	def get(self, pt):
+		return self.image.getpixel(pt)
+
 	def flip_vertically(self):
 		self.image = self.image.transpose(Image.FLIP_TOP_BOTTOM)
-	
+
 	def save(self, filename):
 		self.image.save(filename)
-		
+
 	def __getattr__(self, name):
 		if not hasattr(self, name):
 			return getattr(self.image, name)
 		return super(MyImage, self).__getattribute__(self, name)
+
+	def __repr__(self):
+		im = self.image
+		return '<MyImage: {} ({}x{})>'.format(im.mode, im.width, im.height)
 
 
 class _Vec(object):
@@ -72,18 +80,23 @@ class _Vec(object):
 		# self.y = None
 		# self.z = None
 		self.x = self.y = self.z = 0
-		for k, v in zip(self._fields, arg[0]):
+		for k, v in zip(self._fields, arg[0][:3]):
 			setattr(self, k, v)
 
 	def __eq__(self, other):
 		# return tuple(getattr(self, k) for k in self._fields) == other
 		return tuple(self) == tuple(other)
-	
+
 	def __lt__(self, other):
 		return tuple(self) < tuple(other)
 
 	def __getitem__(self, index):
+		if isinstance(index, slice):
+			return tuple(self)[index]
 		return getattr(self, self._fields[index])
+
+	def __setitem__(self, index, value):
+		return setattr(self, self._fields[index], value)
 
 	def __repr__(self):
 		return '{}{}'.format(self.__class__.__name__, tuple(getattr(self, k) for k in self._fields))
@@ -93,7 +106,7 @@ class _Vec(object):
 
 	def __div__(self, v):
 		return self.__mul__(1. / v)
-	
+
 	def __truediv__(self, v):
 		return self.__mul__(1. / v)
 
@@ -205,8 +218,9 @@ def test():
 	Vec2i() == (0, 0)
 	Vec3i() == (0, 0, 0)
 
-	# test type cast	
+	# test type cast
 	assert Vec2i((1.1, 2.6)) == (1, 2) == Vec2i((1.6, 2.1))
+	assert Vec3i(1.1, 2.6, 3.3)[:2] == (1, 2)
 
 	# test add & subtract
 	a = Vec2i(1.2, 2)
@@ -239,6 +253,12 @@ def test():
 	assert a < b, '{}'.format(a - b)
 	assert min(a, b) == a, '{}'.format(a - b)
 	assert max(a, b) > a, '{}'.format(a - b)
+
+	# test dot & cross
+	a = Vec3f(1, 1, 2)
+	b = Vec3f(1, 2, 1)
+	assert a * b == 1 * 1 + 1 * 2 + 2 * 1
+	assert a ^ b == Vec3f(-3, 1, 1)
 
 
 if __name__ == '__main__':
